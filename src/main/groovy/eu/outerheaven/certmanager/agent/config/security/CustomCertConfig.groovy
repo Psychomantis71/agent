@@ -19,12 +19,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@AutoConfigureBefore({JacksonAutoConfiguration.class})
+@AutoConfigureBefore(JacksonAutoConfiguration.class)
 class CustomCertConfig{
 
     /**
      * Used for parsing temporal data which is received from mpsi endpoints in specific format.
      */
+    //TODO jebem ti serijalizaciju
+    /*
     @Bean
     Jackson2ObjectMapperBuilderCustomizer customizer()
     {
@@ -43,7 +45,7 @@ class CustomCertConfig{
 
                     }
                 };
-    }
+    }*/
 
 }
 
