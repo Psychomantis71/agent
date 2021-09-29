@@ -47,7 +47,7 @@ class FileController {
 
     @PostMapping("/upload-file")
     @ResponseBody
-    FileResponse uploadFile(@RequestParam("file") MultipartFile file) {
+    FileResponse uploadFile(@RequestParam("file") MultipartFile file, @RequestParam String path){
         String name = storageService.store(file)
 
         String uri = ServletUriComponentsBuilder.fromCurrentContextPath()

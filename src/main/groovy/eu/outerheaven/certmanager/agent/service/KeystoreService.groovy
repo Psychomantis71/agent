@@ -60,10 +60,10 @@ class KeystoreService {
             }catch(CertificateExpiredException exception){
                 //TODO foward to manager for mailing
                 LOG.info("Certificate with alias {} is expired!", current_certificates.get(i).getAlias())
-                LOG.info("Exception: ", exception)
+                LOG.debug("Exception: ", exception)
             }catch(CertificateNotYetValidException exception){
                 LOG.info("Certificate with alias {} is not yet valid!", current_certificates.get(i).getAlias())
-                LOG.info("Exception: ", exception)
+                LOG.debug("Exception: ", exception)
             }
             //TODO check validity compared to some set time in config, also foward if needed
         }

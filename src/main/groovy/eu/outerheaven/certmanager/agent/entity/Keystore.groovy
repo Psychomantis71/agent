@@ -14,16 +14,64 @@ import javax.persistence.OneToMany
 class Keystore {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id
+    private Long id
 
-    String location
+    private String location
 
-    String description
+    private String description
 
-    String password
+    private String password
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "keystore")
-    List<Certificate> certificates
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "keystoreId")
+    private List<Certificate> certificates
 
-    Boolean managed
+    private Boolean managed
+
+    Long getId() {
+        return id
+    }
+
+    void setId(Long id) {
+        this.id = id
+    }
+
+    String getLocation() {
+        return location
+    }
+
+    void setLocation(String location) {
+        this.location = location
+    }
+
+    String getDescription() {
+        return description
+    }
+
+    void setDescription(String description) {
+        this.description = description
+    }
+
+    String getPassword() {
+        return password
+    }
+
+    void setPassword(String password) {
+        this.password = password
+    }
+
+    List<Certificate> getCertificates() {
+        return certificates
+    }
+
+    void setCertificates(List<Certificate> certificates) {
+        this.certificates = certificates
+    }
+
+    Boolean getManaged() {
+        return managed
+    }
+
+    void setManaged(Boolean managed) {
+        this.managed = managed
+    }
 }

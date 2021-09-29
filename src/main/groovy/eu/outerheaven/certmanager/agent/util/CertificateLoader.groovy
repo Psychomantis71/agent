@@ -21,10 +21,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.security.*
 import java.security.cert.*
-import java.util.ArrayList
-import java.util.Collection
-import java.util.Enumeration
-import java.util.List
+
 
 /**
  * Class that contains method to load certificates in {@link java.security.cert.X509Certificate}.
@@ -161,7 +158,7 @@ class CertificateLoader {
                     certificate.setX509Certificate(keystore.getCertificate(alias) as X509Certificate)
                     certificate.setManaged(false)
                     certificates.add(certificate)
-                    certificate.setKeystore(tKeystore)
+                    certificate.setKeystoreId(tKeystore.getId())
                     //certificates.add((X509Certificate) keystore.getCertificate(alias))
                     LOG.info("Read certificate with alias: " + alias)
                 }

@@ -14,14 +14,54 @@ class Instance {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id
+    private Long id
 
-    String hostname
+    private String hostname
 
-    String ip
+    private String ip
 
-    Long port
+    private Long port
+
+    private Boolean adopted
 
 
+    Long getId() {
+        return id
+    }
 
+    void setId(Long id) {
+        this.id = id
+    }
+
+    String getHostname() {
+        return hostname
+    }
+
+    void setHostname(String hostname) {
+        this.hostname = hostname
+    }
+
+    String getIp() {
+        return ip
+    }
+
+    void setIp(String ip) {
+        this.ip = ip
+    }
+
+    Long getPort() {
+        return port
+    }
+
+    void setPort(Long port) {
+        this.port = port
+    }
+
+    Boolean getAdopted() {
+        return adopted
+    }
+
+    void setAdopted(Boolean adopted) {
+        this.adopted = adopted
+    }
 }

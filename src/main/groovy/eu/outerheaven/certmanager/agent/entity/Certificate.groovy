@@ -15,17 +15,55 @@ class Certificate {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id
+    private Long id
 
-    String alias
+    private String alias
 
     @Column(length = 4000)
-    X509Certificate x509Certificate
+    private X509Certificate x509Certificate
 
 
-    Boolean managed
+    private Boolean managed
 
-    @ManyToOne
-    @JoinColumn(name="KEYSTORE_ID")
-    Keystore keystore
+    private Long keystoreId
+
+    Long getId() {
+        return id
+    }
+
+    void setId(Long id) {
+        this.id = id
+    }
+
+    String getAlias() {
+        return alias
+    }
+
+    void setAlias(String alias) {
+        this.alias = alias
+    }
+
+    X509Certificate getX509Certificate() {
+        return x509Certificate
+    }
+
+    void setX509Certificate(X509Certificate x509Certificate) {
+        this.x509Certificate = x509Certificate
+    }
+
+    Boolean getManaged() {
+        return managed
+    }
+
+    void setManaged(Boolean managed) {
+        this.managed = managed
+    }
+
+    Long getKeystoreId() {
+        return keystoreId
+    }
+
+    void setKeystoreId(Long keystoreId) {
+        this.keystoreId = keystoreId
+    }
 }

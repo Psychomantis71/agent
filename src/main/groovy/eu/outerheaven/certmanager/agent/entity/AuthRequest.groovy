@@ -5,19 +5,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 class AuthRequest {
 
-    private String userName;
+    private String username;
     private String password;
 
     String getUserName() {
-        return userName
+        return username
     }
 
-    void setUserName(String userName) {
-        this.userName = userName
+    void setUserName(String username) {
+        this.username = username
     }
 
     String getPassword() {

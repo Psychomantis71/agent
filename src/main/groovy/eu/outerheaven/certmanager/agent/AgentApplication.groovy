@@ -37,4 +37,5 @@ class AgentApplication {
 		SpringApplication.run(AgentApplication, args)
 	}
 
+
 }
