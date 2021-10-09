@@ -2,8 +2,6 @@ package eu.outerheaven.certmanager.agent.util
 
 import com.ibm.security.cmskeystore.CMSProvider
 import eu.outerheaven.certmanager.agent.entity.Keystore
-import eu.outerheaven.certmanager.agent.repository.KeystoreRepository
-import io.jsonwebtoken.security.Keys
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.openssl.PEMParser
 import org.slf4j.Logger
@@ -14,9 +12,6 @@ import javax.net.ssl.SSLSession
 import javax.net.ssl.SSLSocket
 import javax.net.ssl.SSLSocketFactory
 import javax.security.cert.CertificateEncodingException
-import java.io.*
-import java.net.URI
-import java.net.URISyntaxException
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.security.*

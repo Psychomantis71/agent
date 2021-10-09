@@ -12,6 +12,7 @@ import javax.persistence.OneToMany
 
 @Entity
 class Keystore {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id

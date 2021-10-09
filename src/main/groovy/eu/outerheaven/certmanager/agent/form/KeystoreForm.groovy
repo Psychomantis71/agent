@@ -5,6 +5,8 @@ import groovy.transform.ToString
 @ToString(includeFields = true)
 class KeystoreForm {
 
+    Long id
+
     String location
 
     String description

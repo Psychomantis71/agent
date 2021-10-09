@@ -1,4 +1,5 @@
-package eu.outerheaven.certmanager.agent.config.security
+package eu.outerheaven.certmanager.agent.config
+
 import eu.outerheaven.certmanager.agent.util.deserializers.X509CertificateDeserializer
 import eu.outerheaven.certmanager.agent.util.serializers.X509CertificateSerializer
 import org.springframework.boot.autoconfigure.AutoConfigureBefore

@@ -37,7 +37,7 @@ class InstanceService {
         repository.findById(id).get()
     }
 
-    void update(){
+    void selfupdate(){
         if(repository.count() > 0){
             Long id = 1
             Instance instance = repository.findById(id).get()
@@ -73,7 +73,7 @@ class InstanceService {
         LOG.info("Requesting adoption from controller")
 
         PreparedRequest preparedRequest = new PreparedRequest()
-        String uri = "api/instance/adopt";
+        String uri = "api/instance/request-adoption";
         Long id = 1
         Instance instance = repository.findById(id).get()
         InstanceForm instanceForm = new InstanceForm(
@@ -86,13 +86,25 @@ class InstanceService {
         )
         RestTemplate restTemplate = new RestTemplate();
         HttpEntity<InstanceForm> request = new HttpEntity<>(instanceForm, preparedRequest.getHeader());
-        ResponseEntity<String> response = restTemplate.postForEntity(preparedRequest.controller_url + uri, request, String.class)
+        ResponseEntity<String> response
         try{
+            response = restTemplate.postForEntity(preparedRequest.controller_url + uri, request, String.class)
             LOG.info(response.getBody().toString())
         } catch(Exception e){
             LOG.error("Adoption request rejected with error message: " + e )
         }
 
+    }
+
+    String update(InstanceForm instanceForm){
+        Long id = 1
+        Instance instance = repository.findById(id).get()
+        instance.setHostname(instanceForm.getHostname())
+        instance.setIp(instanceForm.getIp())
+        instance.setPort(instanceForm.getPort())
+        instance.setAdopted(instanceForm.getAdopted())
+        repository.save(instance)
+        return "Agent updated"
     }
 
 }

@@ -4,7 +4,10 @@ import eu.outerheaven.certmanager.agent.entity.Keystore
 import eu.outerheaven.certmanager.agent.form.KeystoreForm
 import eu.outerheaven.certmanager.agent.service.KeystoreService
 import javassist.NotFoundException
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -19,12 +22,16 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/keystore")
 class KeystoreController {
 
+    private static final Logger LOG = LoggerFactory.getLogger(KeystoreController.class)
+
     @Autowired
     private final KeystoreService service
 
     @PostMapping("/add")
-    void createKeystore(@RequestBody KeystoreForm form){
-        service.create(form)
+    ResponseEntity<Keystore> createKeystore(@RequestBody KeystoreForm form){
+        ResponseEntity lmao = ResponseEntity.ok(service.get(service.create(form)))
+        LOG.info("Response entity is: " + lmao.getBody().toString())
+        return  lmao
     }
 
     @GetMapping("/{keystoreId}")

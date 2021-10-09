@@ -22,7 +22,7 @@ class PreparedRequest {
 
     private static final Logger LOG = LoggerFactory.getLogger(PreparedRequest.class)
     public static final Properties defaultProperties = new Properties()
-    final String controller_url = "http://localhost:8091/"
+    final String controller_url = "http://192.168.1.23:8091/"
 
 
     void getLoginToken(){
@@ -67,6 +67,5 @@ class PreparedRequest {
         return headers
 
     }
-
 
 }

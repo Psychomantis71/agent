@@ -22,7 +22,6 @@ class Certificate {
     @Column(length = 4000)
     private X509Certificate x509Certificate
 
-
     private Boolean managed
 
     private Long keystoreId

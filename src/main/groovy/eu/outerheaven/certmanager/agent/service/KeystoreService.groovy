@@ -1,6 +1,7 @@
 package eu.outerheaven.certmanager.agent.service
 
 import eu.outerheaven.certmanager.agent.entity.Certificate
+import eu.outerheaven.certmanager.agent.entity.Instance
 import eu.outerheaven.certmanager.agent.entity.Keystore
 import eu.outerheaven.certmanager.agent.form.KeystoreForm
 import eu.outerheaven.certmanager.agent.repository.KeystoreRepository
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
+import java.security.KeyStore
 import java.security.cert.CertificateExpiredException
 import java.security.cert.CertificateNotYetValidException
 
@@ -25,7 +27,7 @@ class KeystoreService {
 
 
 
-    void create(KeystoreForm form){
+    Long create(KeystoreForm form){
 
         Keystore keystore = new Keystore(
                 location: form.location,
@@ -33,13 +35,16 @@ class KeystoreService {
                 password: form.password,
                 managed: form.managed,
         )
-        repository.save(keystore)
-
-
+        LOG.info("Adding keystore")
+        Long id = repository.save(keystore).getId()
+        update(id)
+        return id
     }
 
      Keystore get(Long keystoreId){
-        repository.findById(keystoreId).get()
+         Keystore keystore = repository.findById(keystoreId).get()
+         LOG.info("Repository ID {} path {}",keystore.getId(), keystore.getLocation())
+        return keystore
     }
 
      Keystore removeById(Long id){
