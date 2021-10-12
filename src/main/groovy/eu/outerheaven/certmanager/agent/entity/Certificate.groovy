@@ -65,4 +65,5 @@ class Certificate {
     void setKeystoreId(Long keystoreId) {
         this.keystoreId = keystoreId
     }
+
 }

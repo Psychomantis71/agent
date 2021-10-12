@@ -37,7 +37,7 @@ class KeystoreService {
         )
         LOG.info("Adding keystore")
         Long id = repository.save(keystore).getId()
-        update(id)
+        //update(id)
         return id
     }
 
