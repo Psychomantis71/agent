@@ -1,5 +1,7 @@
 package eu.outerheaven.certmanager.agent.controller
 
+import eu.outerheaven.certmanager.agent.dto.CertificateDto
+import eu.outerheaven.certmanager.agent.dto.KeystoreDto
 import eu.outerheaven.certmanager.agent.entity.Keystore
 import eu.outerheaven.certmanager.agent.form.KeystoreForm
 import eu.outerheaven.certmanager.agent.service.KeystoreService
@@ -28,10 +30,8 @@ class KeystoreController {
     private final KeystoreService service
 
     @PostMapping("/add")
-    ResponseEntity<Keystore> createKeystore(@RequestBody KeystoreForm form){
-        ResponseEntity lmao = ResponseEntity.ok(service.get(service.create(form)))
-        LOG.info("Response entity is: " + lmao.getBody().toString())
-        return  lmao
+    ResponseEntity<KeystoreDto> createKeystore(@RequestBody KeystoreForm form){
+        ResponseEntity.ok(service.create(form))
     }
 
     @GetMapping("/{keystoreId}")

@@ -103,6 +103,7 @@ class InstanceService {
         instance.setIp(instanceForm.getIp())
         instance.setPort(instanceForm.getPort())
         instance.setAdopted(instanceForm.getAdopted())
+        instance.setControllerId(instanceForm.getId())
         repository.save(instance)
         return "Agent updated"
     }

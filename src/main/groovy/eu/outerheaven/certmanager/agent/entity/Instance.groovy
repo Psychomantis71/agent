@@ -24,6 +24,8 @@ class Instance {
 
     private Boolean adopted
 
+    //ID of instance on controller
+    private Long controllerId
 
     Long getId() {
         return id
@@ -63,5 +65,13 @@ class Instance {
 
     void setAdopted(Boolean adopted) {
         this.adopted = adopted
+    }
+
+    Long getControllerId() {
+        return controllerId
+    }
+
+    void setControllerId(Long controllerId) {
+        this.controllerId = controllerId
     }
 }

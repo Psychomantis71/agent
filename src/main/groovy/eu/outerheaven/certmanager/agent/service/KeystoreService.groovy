@@ -1,5 +1,7 @@
 package eu.outerheaven.certmanager.agent.service
 
+import eu.outerheaven.certmanager.agent.dto.CertificateDto
+import eu.outerheaven.certmanager.agent.dto.KeystoreDto
 import eu.outerheaven.certmanager.agent.entity.Certificate
 import eu.outerheaven.certmanager.agent.entity.Instance
 import eu.outerheaven.certmanager.agent.entity.Keystore
@@ -27,7 +29,7 @@ class KeystoreService {
 
 
 
-    Long create(KeystoreForm form){
+    KeystoreDto create(KeystoreForm form){
 
         Keystore keystore = new Keystore(
                 location: form.location,
@@ -37,8 +39,16 @@ class KeystoreService {
         )
         LOG.info("Adding keystore")
         Long id = repository.save(keystore).getId()
-        //update(id)
-        return id
+        update(id)
+        keystore = repository.findById(id).get()
+        KeystoreDto keystoreDto = new KeystoreDto(
+                id: keystore.id,
+                location: keystore.location,
+                description: keystore.description,
+                password: keystore.password,
+                certificates: toDto(keystore.getCertificates())
+        )
+        return keystoreDto
     }
 
      Keystore get(Long keystoreId){
@@ -76,6 +86,24 @@ class KeystoreService {
 
         keystore.setCertificates(current_certificates)
         repository.save(keystore)
+    }
+
+    CertificateDto toDto(Certificate certificate){
+        CertificateLoader certificateLoader = new CertificateLoader()
+        CertificateDto certificateDto = new CertificateDto(
+                id: certificate.id,
+                alias: certificate.alias,
+                encodedX509: certificateLoader.encodeX509(certificate.getX509Certificate()),
+                managed: certificate.managed,
+                keystoreId: certificate.keystoreId
+        )
+        return certificateDto
+    }
+
+    List<CertificateDto> toDto(List<Certificate> certificates){
+        List<CertificateDto> certificateDtos = new ArrayList<>()
+        certificates.forEach(r->certificateDtos.add(toDto(r)))
+        return certificateDtos
     }
 
 }
