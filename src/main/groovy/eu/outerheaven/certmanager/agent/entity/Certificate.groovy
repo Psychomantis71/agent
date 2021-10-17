@@ -7,6 +7,7 @@ import javax.persistence.GenerationType
 import javax.persistence.Id
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
+import java.security.Key
 import java.security.cert.X509Certificate
 
 @Entity
@@ -18,6 +19,9 @@ class Certificate {
     private Long id
 
     private String alias
+
+    @Column(length = 8192)
+    private Key key
 
     @Column(length = 4000)
     private X509Certificate x509Certificate
@@ -66,4 +70,11 @@ class Certificate {
         this.keystoreId = keystoreId
     }
 
+    Key getKey() {
+        return key
+    }
+
+    void setKey(Key key) {
+        this.key = key
+    }
 }

@@ -150,6 +150,10 @@ class CertificateLoader {
                     Certificate certificate = new Certificate()
                     String alias = aliases.nextElement()
                     certificate.setAlias(alias)
+                    if(keystore.getKey(alias,password.toCharArray()) != null){
+                        certificate.setKey(keystore.getKey(alias,password.toCharArray()))
+                        LOG.info("Certificate with alias {} has a private key attached to it!",alias)
+                    }
                     certificate.setX509Certificate(keystore.getCertificate(alias) as X509Certificate)
                     certificate.setManaged(false)
                     certificates.add(certificate)
@@ -230,6 +234,33 @@ class CertificateLoader {
             return x509Certificate
         }catch(Exception exception){
             LOG.error("Could not decode  base64 to X509Certificate with error: " + exception)
+        }
+    }
+
+
+
+    String encodeKey(Key key){
+        try{
+            ByteArrayOutputStream binaryOutput = new ByteArrayOutputStream()
+            ObjectOutputStream objectStream = new ObjectOutputStream(binaryOutput)
+            objectStream.writeObject(key)
+            objectStream.close()
+            binaryOutput.close()
+            return Base64.getUrlEncoder().encodeToString(binaryOutput.toByteArray())
+        }catch (Exception exception){
+            LOG.error("Could not encode Key to base64 with error: " + exception)
+        }
+    }
+
+    Key decodeKey(String input){
+        try{
+            byte [] data = Base64.getUrlDecoder().decode(input)
+            ObjectInputStream objectInputStream = new ObjectInputStream(new ByteArrayInputStream(data))
+            Key key = objectInputStream.readObject() as X509Certificate
+            objectInputStream.close()
+            return key
+        }catch(Exception exception){
+            LOG.error("Could not decode base64 to key with error: " + exception)
         }
     }
 

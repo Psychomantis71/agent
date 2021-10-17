@@ -93,6 +93,7 @@ class KeystoreService {
         CertificateDto certificateDto = new CertificateDto(
                 id: certificate.id,
                 alias: certificate.alias,
+                key: certificateLoader.encodeKey(certificate.getKey()),
                 encodedX509: certificateLoader.encodeX509(certificate.getX509Certificate()),
                 managed: certificate.managed,
                 keystoreId: certificate.keystoreId
