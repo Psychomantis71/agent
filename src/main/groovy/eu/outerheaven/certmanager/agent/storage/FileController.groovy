@@ -1,5 +1,6 @@
 package eu.outerheaven.certmanager.agent.storage
 
+import eu.outerheaven.certmanager.agent.form.PayloadLocationForm
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
@@ -10,7 +11,7 @@ import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import java.util.stream.Collectors
 
-@Controller
+@RestController
 @RequestMapping("/files")
 class FileController {
 
@@ -47,8 +48,8 @@ class FileController {
 
     @PostMapping("/upload-file")
     @ResponseBody
-    FileResponse uploadFile(@RequestParam("file") MultipartFile file, @RequestParam String path){
-        String name = storageService.store(file)
+    FileResponse uploadFile(@RequestParam("file") MultipartFile file, @RequestParam Long payloadLocationId){
+        String name = storageService.store(file, payloadLocationId)
 
         String uri = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("/files/download/")
@@ -64,5 +65,21 @@ class FileController {
         return Arrays.stream(files)
                 .map(file -> uploadFile(file))
                 .collect(Collectors.toList())
+    }
+
+    @PostMapping("/add-location")
+    ResponseEntity addLocation(@RequestBody PayloadLocationForm payloadLocationForm){
+        storageService.addPayloadLocation(payloadLocationForm)
+    }
+
+    @DeleteMapping("/remove-location")
+    ResponseEntity removeLocation(@RequestBody Long id){
+        storageService.removePayloadLocation(id)
+    }
+
+    @GetMapping("/all-locations")
+    ResponseEntity getAllLocations(){
+        ResponseEntity.ok(storageService.getAllPayloadLocations())
+
     }
 }

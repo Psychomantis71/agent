@@ -1,5 +1,9 @@
 package eu.outerheaven.certmanager.agent.storage
 
+import eu.outerheaven.certmanager.agent.form.PayloadLocationForm
+import eu.outerheaven.certmanager.agent.repository.PayloadLocationRepository
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.Resource
 import org.springframework.core.io.UrlResource
@@ -7,6 +11,8 @@ import org.springframework.stereotype.Service
 import org.springframework.util.FileSystemUtils
 import org.springframework.util.StringUtils
 import org.springframework.web.multipart.MultipartFile
+import sun.security.krb5.internal.PAData
+
 import javax.annotation.PostConstruct
 import java.nio.file.Files
 import java.nio.file.Path
@@ -18,6 +24,11 @@ import java.util.stream.Stream
 class FileSystemStorageService implements StorageService {
 
     private final Path rootLocation
+
+    private static final Logger LOG = LoggerFactory.getLogger(FileSystemStorageService.class)
+
+    @Autowired
+    private final PayloadLocationRepository payloadLocationRepository
 
     @Autowired
     FileSystemStorageService(StorageProperties properties) {
@@ -35,8 +46,9 @@ class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    String store(MultipartFile file) {
+    String store(MultipartFile file, Long payloadLocationId) {
         String filename = StringUtils.cleanPath(file.getOriginalFilename())
+        PayloadLocation payloadLocation = payloadLocationRepository.getById(payloadLocationId)
         try {
             if (file.isEmpty()) {
                 throw new StorageException("Failed to store empty file " + filename)
@@ -48,8 +60,10 @@ class FileSystemStorageService implements StorageService {
                                 + filename)
             }
             try (InputStream inputStream = file.getInputStream()) {
-                Files.copy(inputStream, this.rootLocation.resolve(filename),
-                        StandardCopyOption.REPLACE_EXISTING)
+                Files.copy(inputStream, Paths.get(payloadLocation.getLocation()  + "\\" + filename),StandardCopyOption.REPLACE_EXISTING)
+
+                //Files.copy(inputStream, this.rootLocation.resolve(filename),
+                  //      StandardCopyOption.REPLACE_EXISTING)
             }
         }
         catch (IOException e) {
@@ -98,5 +112,25 @@ class FileSystemStorageService implements StorageService {
     @Override
     void deleteAll() {
         FileSystemUtils.deleteRecursively(rootLocation.toFile())
+    }
+    @Override
+    void addPayloadLocation(PayloadLocationForm payloadLocationForm){
+        PayloadLocation payloadLocation = new PayloadLocation(
+                name: payloadLocationForm.name,
+                location: payloadLocationForm.location
+        )
+        LOG.info("Payload location data: {} {}",payloadLocation.getLocation(),payloadLocation.getName())
+        payloadLocationRepository.save(payloadLocation)
+    }
+
+    @Override
+    List<PayloadLocation> getAllPayloadLocations(){
+        List<PayloadLocation> all = payloadLocationRepository.findAll()
+        return all
+    }
+
+    @Override
+    void removePayloadLocation(Long id){
+        payloadLocationRepository.deleteById(id)
     }
 }
