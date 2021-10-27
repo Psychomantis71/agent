@@ -24,5 +24,5 @@ interface StorageService {
 
     void removePayloadLocation(Long id)
 
-    List<PayloadLocation> getAllPayloadLocations()
+    List<PayloadLocationForm> getAllPayloadLocations()
 }

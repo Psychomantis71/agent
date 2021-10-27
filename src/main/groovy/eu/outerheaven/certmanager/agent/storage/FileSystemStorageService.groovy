@@ -124,13 +124,29 @@ class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    List<PayloadLocation> getAllPayloadLocations(){
+    List<PayloadLocationForm> getAllPayloadLocations(){
         List<PayloadLocation> all = payloadLocationRepository.findAll()
-        return all
+        List<PayloadLocationForm> allForm = toForm(all)
+        return allForm
     }
 
     @Override
     void removePayloadLocation(Long id){
         payloadLocationRepository.deleteById(id)
+    }
+
+    PayloadLocationForm toForm(PayloadLocation payloadLocation){
+        PayloadLocationForm payloadLocationForm = new PayloadLocationForm(
+                id: payloadLocation.id,
+                name: payloadLocation.name,
+                location: payloadLocation.location
+        )
+        return payloadLocationForm
+    }
+
+    List<PayloadLocationForm> toForm (List<PayloadLocation> payloadLocations){
+        List<PayloadLocationForm> payloadLocationForms = new ArrayList<>()
+        payloadLocations.forEach(r->payloadLocationForms.add(toForm(r)))
+        return payloadLocationForms
     }
 }

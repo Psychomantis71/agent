@@ -12,7 +12,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import java.util.stream.Collectors
 
 @RestController
-@RequestMapping("/files")
+@RequestMapping("/api/files")
 class FileController {
 
     private StorageService storageService
