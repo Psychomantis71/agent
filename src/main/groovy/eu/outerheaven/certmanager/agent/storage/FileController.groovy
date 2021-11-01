@@ -1,5 +1,6 @@
 package eu.outerheaven.certmanager.agent.storage
 
+import eu.outerheaven.certmanager.agent.dto.PayloadUploadDto
 import eu.outerheaven.certmanager.agent.form.PayloadLocationForm
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
@@ -47,16 +48,8 @@ class FileController {
     }
 
     @PostMapping("/upload-file")
-    @ResponseBody
-    FileResponse uploadFile(@RequestParam("file") MultipartFile file, @RequestParam Long payloadLocationId){
-        String name = storageService.store(file, payloadLocationId)
-
-        String uri = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/files/download/")
-                .path(name)
-                .toUriString()
-
-        return new FileResponse(name, uri, file.getContentType(), file.getSize())
+    ResponseEntity uploadFile(@RequestBody PayloadUploadDto payloadUploadDto){
+        ResponseEntity.ok(storageService.store(payloadUploadDto))
     }
 
     @PostMapping("/upload-multiple-files")
@@ -70,6 +63,7 @@ class FileController {
     @PostMapping("/add-location")
     ResponseEntity addLocation(@RequestBody PayloadLocationForm payloadLocationForm){
         storageService.addPayloadLocation(payloadLocationForm)
+
     }
 
     @DeleteMapping("/remove-location")

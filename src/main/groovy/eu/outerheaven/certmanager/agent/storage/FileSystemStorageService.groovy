@@ -1,5 +1,6 @@
 package eu.outerheaven.certmanager.agent.storage
 
+import eu.outerheaven.certmanager.agent.dto.PayloadUploadDto
 import eu.outerheaven.certmanager.agent.form.PayloadLocationForm
 import eu.outerheaven.certmanager.agent.repository.PayloadLocationRepository
 import org.slf4j.Logger
@@ -14,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile
 import sun.security.krb5.internal.PAData
 
 import javax.annotation.PostConstruct
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -46,9 +48,12 @@ class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    String store(MultipartFile file, Long payloadLocationId) {
-        String filename = StringUtils.cleanPath(file.getOriginalFilename())
-        PayloadLocation payloadLocation = payloadLocationRepository.getById(payloadLocationId)
+    String store(PayloadUploadDto payloadUploadDto) {
+        LOG.info("DATA: {} {} {}", payloadUploadDto.payloadLocationId, payloadUploadDto.name, payloadUploadDto.base64file )
+        PayloadLocation payloadLocation = payloadLocationRepository.getById(payloadUploadDto.payloadLocationId)
+        String filename = payloadUploadDto.getName()
+        String file = payloadUploadDto.getBase64file()
+
         try {
             if (file.isEmpty()) {
                 throw new StorageException("Failed to store empty file " + filename)
@@ -59,11 +64,17 @@ class FileSystemStorageService implements StorageService {
                         "Cannot store file with relative path outside current directory "
                                 + filename)
             }
-            try (InputStream inputStream = file.getInputStream()) {
-                Files.copy(inputStream, Paths.get(payloadLocation.getLocation()  + "\\" + filename),StandardCopyOption.REPLACE_EXISTING)
+            try {
+                //Files.copy(inputStream, Paths.get(payloadLocation.getLocation()  + "\\" + filename),StandardCopyOption.REPLACE_EXISTING)
+
+                byte[] decodedFile = Base64.getDecoder().decode(file.getBytes(StandardCharsets.UTF_8));
+                Path destinationFile = Paths.get(payloadLocation.location, filename);
+                Files.write(destinationFile, decodedFile);
 
                 //Files.copy(inputStream, this.rootLocation.resolve(filename),
                   //      StandardCopyOption.REPLACE_EXISTING)
+            }catch (IOException e) {
+                throw new StorageException("Failed to store file " + filename, e)
             }
         }
         catch (IOException e) {

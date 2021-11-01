@@ -1,5 +1,6 @@
 package eu.outerheaven.certmanager.agent.storage
 
+import eu.outerheaven.certmanager.agent.dto.PayloadUploadDto
 import eu.outerheaven.certmanager.agent.form.PayloadLocationForm
 import org.springframework.core.io.Resource
 import org.springframework.web.multipart.MultipartFile
@@ -10,7 +11,7 @@ interface StorageService {
 
     void init()
 
-    String store(MultipartFile file, Long payloadLocationId)
+    String store(PayloadUploadDto payloadUploadDto)
 
     Stream<Path> loadAll()
 
