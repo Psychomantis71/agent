@@ -1,5 +1,6 @@
 package eu.outerheaven.certmanager.agent.controller
 
+import eu.outerheaven.certmanager.agent.dto.CertificateDto
 import eu.outerheaven.certmanager.agent.entity.Certificate
 import eu.outerheaven.certmanager.agent.entity.Keystore
 import eu.outerheaven.certmanager.agent.form.KeystoreForm
@@ -29,5 +30,9 @@ class CertificateController {
         service.get(certificateId)
     }
 
+    @PostMapping("/addToKeystore/{keystoreId}")
+    Certificate get(@RequestBody CertificateDto certificateDto ,@PathVariable Long keystoreId) throws NotFoundException{
+        service.addToKeystore(certificateDto, keystoreId)
+    }
 
 }

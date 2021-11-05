@@ -40,6 +40,7 @@ class KeystoreService {
         LOG.info("Adding keystore")
         Long id = repository.save(keystore).getId()
         update(id)
+        update(id)
         keystore = repository.findById(id).get()
         KeystoreDto keystoreDto = new KeystoreDto(
                 id: keystore.id,

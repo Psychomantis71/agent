@@ -156,8 +156,8 @@ class CertificateLoader {
                     }
                     certificate.setX509Certificate(keystore.getCertificate(alias) as X509Certificate)
                     certificate.setManaged(false)
-                    certificates.add(certificate)
                     certificate.setKeystoreId(tKeystore.getId())
+                    certificates.add(certificate)
                     //certificates.add((X509Certificate) keystore.getCertificate(alias))
                     LOG.info("Read certificate with alias: " + alias)
                 }
@@ -175,6 +175,48 @@ class CertificateLoader {
         return certificates
     }
 
+    void addCertificatesToKeystore(String uri, String password, List<Certificate> certificates) throws KeyStoreException,
+            IOException, CertificateException, NoSuchAlgorithmException {
+        String[] types = new String[]{"JKS", "JCEKS", "PKCS12", "IBMCMSKS",/*BC types*/ "BKS", "PKCS12", "UBER"}
+        boolean read = false
+        Security.addProvider(new BouncyCastleProvider())
+        Security.addProvider(new CMSProvider())
+        for (int i = 0; i < types.length; ++i) {
+            try {
+                KeyStore keystore
+                if (i >= 4) { //BC
+                    keystore = KeyStore.getInstance(types[i], "BC")
+                } else { //SUN AND IBM
+                    keystore = KeyStore.getInstance(types[i])
+                }
+                keystore.load(new FileInputStream(uri), password.toCharArray())
+                LOG.debug("Adding certificate(s) to keystore")
+                for(int n=0;n<certificates.size();n++){
+                    if(keystore.containsAlias(certificates.get(n).getAlias())){
+                        LOG.warn("Added certificate with alias {} in keystore {} already exist, it will be overwritten", certificates.get(n).getAlias(),uri)
+                    }
+                    if(certificates.get(n).key == null){
+                        keystore.setKeyEntry(certificates.get(n).getAlias(),certificates.get(n).getKey(),null,certificates.get(n).getX509Certificate())
+                    }else{
+                        keystore.setCertificateEntry(certificates.get(n).getAlias(),certificates.get(n).getX509Certificate())
+                    }
+
+                }
+
+
+
+
+                read=true
+            } catch (Exception e) {
+                LOG.error("Reading keystore with type " + types[i] + " : " + e.toString())
+            }
+        }
+        //needed?
+        // Security.removeProvider("BC")
+        if (!read) {
+            throw new RuntimeException("Could not read keystore: " + uri)
+        }
+    }
 
     //UPDATED (NOTE: DOES NOT APPLY ALIAS)
     static List<Certificate> loadCertificatesFromCacerts(String uri, String password) throws KeyStoreException,
@@ -237,9 +279,7 @@ class CertificateLoader {
         }
     }
 
-
-
-    String encodeKey(Key key){
+    String encodeKey(PrivateKey key){
         try{
             ByteArrayOutputStream binaryOutput = new ByteArrayOutputStream()
             ObjectOutputStream objectStream = new ObjectOutputStream(binaryOutput)
@@ -252,11 +292,11 @@ class CertificateLoader {
         }
     }
 
-    Key decodeKey(String input){
+    PrivateKey decodeKey(String input){
         try{
             byte [] data = Base64.getUrlDecoder().decode(input)
             ObjectInputStream objectInputStream = new ObjectInputStream(new ByteArrayInputStream(data))
-            Key key = objectInputStream.readObject() as X509Certificate
+            PrivateKey key = objectInputStream.readObject() as PrivateKey
             objectInputStream.close()
             return key
         }catch(Exception exception){
