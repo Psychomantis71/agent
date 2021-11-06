@@ -21,6 +21,33 @@ class StartupTasks {
 
     @EventListener
     public void doSomethingAfterStartup(ApplicationReadyEvent event) {
+
+
+        File f = new File("controller.properties");
+        if(f.exists() && !f.isDirectory()) {
+        }else{
+
+            try (OutputStream output = new FileOutputStream("controller.properties")) {
+
+                Properties prop = new Properties();
+
+                // set the properties value
+                prop.setProperty("controller.user", "agent_user");
+                prop.setProperty("controller.password", "kuracnabiciklu");
+                prop.setProperty("controller.ip", "192.168.1.23");
+                prop.setProperty("controller.port", "8091");
+
+                // save properties to project root folder
+                prop.store(output, null);
+                output.close()
+                System.out.println(prop);
+
+            } catch (IOException io) {
+                io.printStackTrace();
+            }
+
+        }
+
         LOG.info("Hello world, I have just started up")
         if(service.amIAdopted()){
             LOG.info("Node has been adopted from a controller")

@@ -22,17 +22,64 @@ class PreparedRequest {
 
     private static final Logger LOG = LoggerFactory.getLogger(PreparedRequest.class)
     public static final Properties defaultProperties = new Properties()
-    final String controller_url = "http://192.168.1.23:8091/"
+    //final String controller_url = "http://192.168.1.23:8091/"
+
+    String controller_url(){
+
+        String controller_ip
+        String controller_port
+
+        try (InputStream input = new FileInputStream("controller.properties")) {
+
+            Properties prop = new Properties();
+
+            // load a properties file
+            prop.load(input);
+
+            // get the property value and print it out
+            controller_ip = prop.getProperty("controller.ip")
+            controller_port = prop.getProperty("controller.port")
+
+            input.close()
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+        String kurac = "http://" + controller_ip + ":" + controller_port + "/"
+        return kurac
+    }
 
 
     void getLoginToken(){
 
-        String url = controller_url + "login"
+        String controller_ip
+        String controller_port
+        String user
+        String password
+        try (InputStream input = new FileInputStream("controller.properties")) {
 
+            Properties prop = new Properties();
+
+            // load a properties file
+            prop.load(input);
+
+            // get the property value and print it out
+            user = prop.getProperty("controller.user")
+            password = prop.getProperty("controller.password")
+
+            input.close()
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+
+
+
+        String url = controller_url() + "login"
         RestTemplate template = new RestTemplate();
         AuthRequestForm authRequestForm = new AuthRequestForm()
-        authRequestForm.setPassword("password")
-        authRequestForm.setUsername("admin")
+        authRequestForm.setPassword(password)
+        authRequestForm.setUsername(user)
         HttpEntity<AuthRequestForm> request = new HttpEntity<>(authRequestForm);
         HttpEntity<String> response = template.exchange(url, HttpMethod.POST, request, String.class);
         HttpHeaders headers = response.getHeaders();

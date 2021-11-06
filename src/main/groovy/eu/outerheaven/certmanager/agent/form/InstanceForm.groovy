@@ -16,6 +16,8 @@ class InstanceForm {
 
     Boolean adopted
 
+    String newPassword
 
+    String newUsername
 
 }

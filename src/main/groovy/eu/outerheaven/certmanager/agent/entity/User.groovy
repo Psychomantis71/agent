@@ -24,11 +24,14 @@ class User {
 
     private String email
 
-    User(int id, String userName, String password, String email) {
+    private UserRole userRole
+
+    User(int id, String userName, String password, String email, UserRole userRole) {
         this.id = id
         this.userName = userName
         this.password = password
         this.email = email
+        this.userRole = userRole
     }
 
     User() {
@@ -64,6 +67,14 @@ class User {
 
     void setEmail(String email) {
         this.email = email
+    }
+
+    UserRole getUserRole() {
+        return userRole
+    }
+
+    void setUserRole(UserRole userRole) {
+        this.userRole = userRole
     }
 }
 
