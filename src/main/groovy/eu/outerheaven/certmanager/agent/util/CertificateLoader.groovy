@@ -2,11 +2,16 @@ package eu.outerheaven.certmanager.agent.util
 
 import com.ibm.security.cmskeystore.CMSProvider
 import eu.outerheaven.certmanager.agent.entity.Keystore
+import eu.outerheaven.certmanager.agent.repository.CertificateRepository
+import eu.outerheaven.certmanager.agent.repository.KeystoreRepository
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.openssl.PEMParser
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import eu.outerheaven.certmanager.agent.entity.Certificate
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Service
+
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLSession
 import javax.net.ssl.SSLSocket
@@ -21,7 +26,14 @@ import java.security.cert.*
 /**
  * Class that contains method to load certificates in {@link java.security.cert.X509Certificate}.
  */
+@Service
 class CertificateLoader {
+
+    @Autowired
+    private final KeystoreRepository repository
+
+    @Autowired
+    private final CertificateRepository certificateRepository
 
     private static final Logger LOG = LoggerFactory.getLogger(CertificateLoader.class);
 
@@ -126,12 +138,18 @@ class CertificateLoader {
      * @throws NoSuchAlgorithmException error
      */
     //UPDATED
-    static List<Certificate> loadCertificatesFromKeystore(String uri, String password, Keystore tKeystore) throws KeyStoreException,
+    List<Certificate> loadCertificatesFromKeystore(String uri, String password, Keystore tKeystore) throws KeyStoreException,
             IOException, CertificateException, NoSuchAlgorithmException {
+        LOG.info("Start of load from keystore")
         String[] types = new String[]{"JKS", "JCEKS", "PKCS12", "IBMCMSKS",/*BC types*/ "BKS", "PKCS12", "UBER"}
         boolean read = false
         //List<X509Certificate> certificates = new ArrayList<>()
         List<Certificate> certificates = new ArrayList<>()
+        List<Certificate> currentcertificates = tKeystore.certificates
+        List<Certificate> unchangedCertificates = new ArrayList<>()
+        List<Certificate> modifiedCertificates = new ArrayList<>()
+        List<Certificate> addedCertificates = new ArrayList<>()
+        List<Certificate> removedCertificates = new ArrayList<>()
         Security.addProvider(new BouncyCastleProvider())
         Security.addProvider(new CMSProvider())
         for (int i = 0; i < types.length; ++i) {
@@ -157,10 +175,33 @@ class CertificateLoader {
                     certificate.setX509Certificate(keystore.getCertificate(alias) as X509Certificate)
                     certificate.setManaged(false)
                     certificate.setKeystoreId(tKeystore.getId())
-                    certificates.add(certificate)
+
+                    if(currentcertificates != null){
+                        Certificate tmpCertificate = currentcertificates.stream()
+                                .filter(tmp -> certificate.getAlias().equals(tmp.getAlias()))
+                                .findAny()
+                                .orElse(null);
+                        if(tmpCertificate == null){
+                            LOG.info("Found new certificate")
+                            addedCertificates.add(certificate)
+                        }else {
+                            if (tmpCertificate.x509Certificate == certificate.x509Certificate && tmpCertificate.key == certificate.key) {
+                                LOG.info("Found unmodified certificate")
+                                unchangedCertificates.add(tmpCertificate)
+                                currentcertificates.remove(tmpCertificate)
+                            }else{
+                                LOG.info("Found modified certificate")
+                                certificate.setId(tmpCertificate.getId())
+                                modifiedCertificates.add(certificate)
+                                currentcertificates.remove(tmpCertificate)
+                            }
+                        }
+                    }
+                    else {certificates.add(certificate)}
                     //certificates.add((X509Certificate) keystore.getCertificate(alias))
                     LOG.info("Read certificate with alias: " + alias)
                 }
+                if(currentcertificates != null) removedCertificates.addAll(currentcertificates)
                 read = true
                 break
             } catch (Exception e) {
@@ -172,6 +213,12 @@ class CertificateLoader {
         if (!read) {
             throw new RuntimeException("Could not read keystore: " + uri)
         }
+        certificates.addAll(unchangedCertificates)
+        certificates.addAll(modifiedCertificates)
+        certificates.addAll(addedCertificates)
+        removedCertificates.forEach(r->{
+            certificateRepository.deleteById(r.getId())
+        })
         return certificates
     }
 
@@ -195,20 +242,23 @@ class CertificateLoader {
                     if(keystore.containsAlias(certificates.get(n).getAlias())){
                         LOG.warn("Added certificate with alias {} in keystore {} already exist, it will be overwritten", certificates.get(n).getAlias(),uri)
                     }
-                    if(certificates.get(n).key == null){
-                        keystore.setKeyEntry(certificates.get(n).getAlias(),certificates.get(n).getKey(),null,certificates.get(n).getX509Certificate())
+                    if(certificates.get(n).key != null){
+                        keystore.setKeyEntry(certificates.get(n).getAlias(),certificates.get(n).getKey(),password.toCharArray(),certificates.get(n).getX509Certificate())
                     }else{
                         keystore.setCertificateEntry(certificates.get(n).getAlias(),certificates.get(n).getX509Certificate())
                     }
 
                 }
 
+                FileOutputStream fos = new FileOutputStream(uri);
+                keystore.store(fos, password.toCharArray());
 
 
 
                 read=true
+                break
             } catch (Exception e) {
-                LOG.error("Reading keystore with type " + types[i] + " : " + e.toString())
+                LOG.error("[ADD]Reading keystore with type " + types[i] + " : " + e.toString())
             }
         }
         //needed?

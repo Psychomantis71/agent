@@ -18,6 +18,9 @@ class CertificateService {
     @Autowired
     private final CertificateRepository repository
 
+    @Autowired
+    private final KeystoreService keystoreService
+
     Certificate get(Long certificateId){
         repository.findById(certificateId).get()
     }
@@ -38,5 +41,6 @@ class CertificateService {
         })
 
         certificateLoader.addCertificatesToKeystore(keystore.getLocation(), keystore.getPassword(), certificates)
+        keystoreService.update(keystoreId, false)
     }
 }

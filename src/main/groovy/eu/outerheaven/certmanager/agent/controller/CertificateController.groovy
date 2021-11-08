@@ -31,8 +31,8 @@ class CertificateController {
     }
 
     @PostMapping("/addToKeystore/{keystoreId}")
-    Certificate get(@RequestBody CertificateDto certificateDto ,@PathVariable Long keystoreId) throws NotFoundException{
-        service.addToKeystore(certificateDto, keystoreId)
+    Certificate get(@RequestBody List<CertificateDto> certificateDtos ,@PathVariable Long keystoreId) throws NotFoundException{
+        service.addToKeystore(certificateDtos, keystoreId)
     }
 
 }

@@ -46,7 +46,7 @@ class KeystoreController {
 
     @PostMapping("/{keystoreId}/update")
     void updateKeystore(@PathVariable Long keystoreId){
-        service.update(keystoreId)
+        service.update(keystoreId, false)
     }
 
 

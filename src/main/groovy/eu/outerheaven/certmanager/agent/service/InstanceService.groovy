@@ -114,17 +114,18 @@ class InstanceService {
         instance.setControllerId(instanceForm.getId())
         repository.save(instance)
 
-        try (OutputStream output = new FileOutputStream("controller.properties")) {
-
+        try {
+            InputStream input = new FileInputStream("controller.properties")
             Properties prop = new Properties();
-
+            prop.load(input);
             // set the properties value
             prop.setProperty("controller.user", instanceForm.getNewUsername());
             prop.setProperty("controller.password", instanceForm.getNewPassword());
-
+            OutputStream output = new FileOutputStream("controller.properties")
             // save properties to project root folder
             prop.store(output, null);
             output.close()
+            input.close()
             System.out.println(prop);
 
         } catch (IOException io) {
@@ -137,7 +138,8 @@ class InstanceService {
         User user = userRepository.findByUserName("admin")
         user.setPassword(passwordEncoder.encode(newPassword))
         userRepository.save(user)
-
+        PreparedRequest preparedRequest = new PreparedRequest()
+        preparedRequest.getLoginToken()
         return newPassword
     }
 
