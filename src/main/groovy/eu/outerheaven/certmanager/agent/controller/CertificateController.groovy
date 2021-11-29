@@ -8,6 +8,7 @@ import eu.outerheaven.certmanager.agent.service.CertificateService
 import eu.outerheaven.certmanager.agent.service.KeystoreService
 import javassist.NotFoundException
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -33,6 +34,11 @@ class CertificateController {
     @PostMapping("/addToKeystore/{keystoreId}")
     Certificate get(@RequestBody List<CertificateDto> certificateDtos ,@PathVariable Long keystoreId) throws NotFoundException{
         service.addToKeystore(certificateDtos, keystoreId)
+    }
+
+    @DeleteMapping("/{certificateId}")
+    ResponseEntity delete(@PathVariable Long certificateId) throws NotFoundException{
+        ResponseEntity.ok(service.remove(certificateId))
     }
 
 }

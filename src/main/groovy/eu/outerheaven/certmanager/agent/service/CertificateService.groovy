@@ -21,6 +21,10 @@ class CertificateService {
     @Autowired
     private final KeystoreService keystoreService
 
+    @Autowired
+    private final CertificateLoader certificateLoader
+
+
     Certificate get(Long certificateId){
         repository.findById(certificateId).get()
     }
@@ -42,5 +46,22 @@ class CertificateService {
 
         certificateLoader.addCertificatesToKeystore(keystore.getLocation(), keystore.getPassword(), certificates)
         keystoreService.update(keystoreId, false)
+    }
+
+    void remove(Long certId){
+        Certificate certificate = repository.findById(certId).get()
+        Keystore keystore = keystoreRepository.findById(certificate.getKeystoreId()).get()
+
+        certificateLoader.removeCertFromKeystore(keystore.location, keystore.password, certificate.getAlias())
+        keystoreService.update(keystore.getId(),false)
+
+        /*
+        List<Certificate> certificates = keystore.getCertificates()
+        certificates.remove(certificate)
+        keystore.setCertificates(certificates)
+        keystoreRepository.save(keystore)
+        repository.delete(certificate)
+
+         */
     }
 }

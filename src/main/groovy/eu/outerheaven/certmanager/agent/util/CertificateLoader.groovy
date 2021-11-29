@@ -304,6 +304,41 @@ class CertificateLoader {
         }
     }
 
+    void removeCertFromKeystore(String uri, String password, String certalias) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException{
+        String[] types = new String[]{"JKS", "JCEKS", "PKCS12", "IBMCMSKS",/*BC types*/ "BKS", "PKCS12", "UBER"}
+        boolean read = false
+        Security.addProvider(new BouncyCastleProvider())
+        Security.addProvider(new CMSProvider())
+        for (int i = 0; i < types.length; ++i) {
+            try {
+                KeyStore keystore
+                if (i >= 4) { //BC
+                    keystore = KeyStore.getInstance(types[i], "BC")
+                } else { //SUN AND IBM
+                    keystore = KeyStore.getInstance(types[i])
+                }
+                keystore.load(new FileInputStream(uri), password.toCharArray())
+                LOG.debug("Removing certificate from keystore")
+                keystore.deleteEntry(certalias)
+                FileOutputStream fos = new FileOutputStream(uri);
+                keystore.store(fos, password.toCharArray());
+
+
+
+                read=true
+                break
+            } catch (Exception e) {
+                LOG.error("[ADD]Reading keystore with type " + types[i] + " : " + e.toString())
+            }
+        }
+        //needed?
+        // Security.removeProvider("BC")
+        if (!read) {
+            throw new RuntimeException("Could not read keystore: " + uri)
+        }
+
+    }
+
     String encodeX509(X509Certificate x509Certificate){
         try{
             ByteArrayOutputStream binaryOutput = new ByteArrayOutputStream()
