@@ -1,11 +1,10 @@
 package eu.outerheaven.certmanager.agent.controller
 
 import eu.outerheaven.certmanager.agent.dto.CertificateDto
+import eu.outerheaven.certmanager.agent.dto.KeystoreCertificateDto
 import eu.outerheaven.certmanager.agent.entity.Certificate
-import eu.outerheaven.certmanager.agent.entity.Keystore
-import eu.outerheaven.certmanager.agent.form.KeystoreForm
-import eu.outerheaven.certmanager.agent.service.CertificateService
-import eu.outerheaven.certmanager.agent.service.KeystoreService
+import eu.outerheaven.certmanager.agent.entity.KeystoreCertificate
+import eu.outerheaven.certmanager.agent.service.KeystoreCertificateService
 import javassist.NotFoundException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -17,22 +16,20 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-import java.security.cert.X509Certificate
-
 @RestController
 @RequestMapping("/api/certificate")
 class CertificateController {
-
+    //TODO Rename this to keystorecertificatecontroller
     @Autowired
-    private final CertificateService service
+    private final KeystoreCertificateService service
 
     @GetMapping("/{certificateId}")
-    Certificate get(@PathVariable Long certificateId) throws NotFoundException{
+    KeystoreCertificate get(@PathVariable Long certificateId) throws NotFoundException{
         service.get(certificateId)
     }
 
     @PostMapping("/addToKeystore/{keystoreId}")
-    Certificate get(@RequestBody List<CertificateDto> certificateDtos ,@PathVariable Long keystoreId) throws NotFoundException{
+    Certificate get(@RequestBody List<KeystoreCertificateDto> certificateDtos, @PathVariable Long keystoreId) throws NotFoundException{
         service.addToKeystore(certificateDtos, keystoreId)
     }
 

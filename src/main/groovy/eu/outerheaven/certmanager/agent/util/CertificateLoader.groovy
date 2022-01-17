@@ -2,7 +2,9 @@ package eu.outerheaven.certmanager.agent.util
 
 import com.ibm.security.cmskeystore.CMSProvider
 import eu.outerheaven.certmanager.agent.entity.Keystore
+import eu.outerheaven.certmanager.agent.entity.KeystoreCertificate
 import eu.outerheaven.certmanager.agent.repository.CertificateRepository
+import eu.outerheaven.certmanager.agent.repository.KeystoreCertificateRepository
 import eu.outerheaven.certmanager.agent.repository.KeystoreRepository
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.openssl.PEMParser
@@ -35,6 +37,9 @@ class CertificateLoader {
     @Autowired
     private final CertificateRepository certificateRepository
 
+    @Autowired
+    private final KeystoreCertificateRepository keystoreCertificateRepository
+
     private static final Logger LOG = LoggerFactory.getLogger(CertificateLoader.class);
 
     /**
@@ -45,6 +50,7 @@ class CertificateLoader {
      * @throws CertificateException error
      * @throws IOException          error
      */
+    //Unchanged
     static X509Certificate loadFileCertificate(String uri) throws CertificateException, IOException {
         if (uri.toLowerCase().endsWith("pem")) {
             InputStream res = Files.newInputStream(Paths.get(uri))
@@ -70,7 +76,7 @@ class CertificateLoader {
      * @throws CertificateException         error
      * @throws CertificateEncodingException error
      */
-    //UPDATED
+    ///Unchanged
     static List<Certificate> loadWebCertificates(String uri) throws IOException, NoSuchAlgorithmException,
             CertificateException, CertificateEncodingException, KeyManagementException, URISyntaxException {
         if (!uri.startsWith("https")) {
@@ -95,7 +101,7 @@ class CertificateLoader {
      * @throws CertificateException         error
      * @throws CertificateEncodingException error
      */
-    //UPDATED
+    //Unchanged
     static List<Certificate> loadCertificatesFromHost(String host, int port) throws KeyManagementException,
             NoSuchAlgorithmException, IOException, CertificateException, CertificateEncodingException {
         SSLSocket socket = null
@@ -114,9 +120,7 @@ class CertificateLoader {
                 ByteArrayInputStream bais = new ByteArrayInputStream(certificate.getEncoded())
                 Certificate custom_certificate = new Certificate()
                 custom_certificate.setX509Certificate(cf.generateCertificate(bais) as X509Certificate)
-                custom_certificate.setManaged(false)
                 certificates.add(custom_certificate)
-                //certificates.add((X509Certificate) cf.generateCertificate(bais))
             }
             return certificates
         } finally {
@@ -137,19 +141,19 @@ class CertificateLoader {
      * @throws CertificateException     error
      * @throws NoSuchAlgorithmException error
      */
-    //UPDATED
-    List<Certificate> loadCertificatesFromKeystore(String uri, String password, Keystore tKeystore) throws KeyStoreException,
+    //Refactored
+    List<KeystoreCertificate> loadCertificatesFromKeystore(String uri, String password, Keystore tKeystore) throws KeyStoreException,
             IOException, CertificateException, NoSuchAlgorithmException {
         LOG.info("Start of load from keystore")
         String[] types = new String[]{"JKS", "JCEKS", "PKCS12", "IBMCMSKS",/*BC types*/ "BKS", "PKCS12", "UBER"}
         boolean read = false
         //List<X509Certificate> certificates = new ArrayList<>()
-        List<Certificate> certificates = new ArrayList<>()
-        List<Certificate> currentcertificates = tKeystore.certificates
-        List<Certificate> unchangedCertificates = new ArrayList<>()
-        List<Certificate> modifiedCertificates = new ArrayList<>()
-        List<Certificate> addedCertificates = new ArrayList<>()
-        List<Certificate> removedCertificates = new ArrayList<>()
+        List<KeystoreCertificate> certificates = new ArrayList<>()
+        List<KeystoreCertificate> currentcertificates = tKeystore.keystoreCertificates
+        List<KeystoreCertificate> unchangedCertificates = new ArrayList<>()
+        List<KeystoreCertificate> modifiedCertificates = new ArrayList<>()
+        List<KeystoreCertificate> addedCertificates = new ArrayList<>()
+        List<KeystoreCertificate> removedCertificates = new ArrayList<>()
         Security.addProvider(new BouncyCastleProvider())
         Security.addProvider(new CMSProvider())
         for (int i = 0; i < types.length; ++i) {
@@ -165,19 +169,22 @@ class CertificateLoader {
                 LOG.debug("Reading aliases from keystore")
                 Enumeration<String> aliases = keystore.aliases()
                 while (aliases.hasMoreElements()) {
-                    Certificate certificate = new Certificate()
+                    Certificate x509certificate = new Certificate()
+                    KeystoreCertificate certificate = new KeystoreCertificate()
                     String alias = aliases.nextElement()
                     certificate.setAlias(alias)
                     if(keystore.getKey(alias,password.toCharArray()) != null){
-                        certificate.setKey(keystore.getKey(alias,password.toCharArray()))
+                        //NOTE this was modified to cast as private key
+                        x509certificate.setKey(keystore.getKey(alias,password.toCharArray()) as PrivateKey)
+                        //certificate.setKey(keystore.getKey(alias,password.toCharArray()))
                         LOG.info("Certificate with alias {} has a private key attached to it!",alias)
                     }
-                    certificate.setX509Certificate(keystore.getCertificate(alias) as X509Certificate)
-                    certificate.setManaged(false)
+                    x509certificate.setX509Certificate(keystore.getCertificate(alias) as X509Certificate)
+                    certificate.setCertificate(x509certificate)
                     certificate.setKeystoreId(tKeystore.getId())
 
                     if(currentcertificates != null){
-                        Certificate tmpCertificate = currentcertificates.stream()
+                        KeystoreCertificate tmpCertificate = currentcertificates.stream()
                                 .filter(tmp -> certificate.getAlias().equals(tmp.getAlias()))
                                 .findAny()
                                 .orElse(null);
@@ -185,7 +192,7 @@ class CertificateLoader {
                             LOG.info("Found new certificate")
                             addedCertificates.add(certificate)
                         }else {
-                            if (tmpCertificate.x509Certificate == certificate.x509Certificate && tmpCertificate.key == certificate.key) {
+                            if (tmpCertificate.getCertificate().x509Certificate == certificate.getCertificate().x509Certificate && tmpCertificate.getCertificate().key == certificate.getCertificate().key) {
                                 LOG.info("Found unmodified certificate")
                                 unchangedCertificates.add(tmpCertificate)
                                 currentcertificates.remove(tmpCertificate)
@@ -217,12 +224,12 @@ class CertificateLoader {
         certificates.addAll(modifiedCertificates)
         certificates.addAll(addedCertificates)
         removedCertificates.forEach(r->{
-            certificateRepository.deleteById(r.getId())
+            keystoreCertificateRepository.deleteById(r.getId())
         })
         return certificates
     }
-
-    void addCertificatesToKeystore(String uri, String password, List<Certificate> certificates) throws KeyStoreException,
+    //Unchanged
+    void addCertificatesToKeystore(String uri, String password, List<KeystoreCertificate> certificates) throws KeyStoreException,
             IOException, CertificateException, NoSuchAlgorithmException {
         String[] types = new String[]{"JKS", "JCEKS", "PKCS12", "IBMCMSKS",/*BC types*/ "BKS", "PKCS12", "UBER"}
         boolean read = false
@@ -242,10 +249,10 @@ class CertificateLoader {
                     if(keystore.containsAlias(certificates.get(n).getAlias())){
                         LOG.warn("Added certificate with alias {} in keystore {} already exist, it will be overwritten", certificates.get(n).getAlias(),uri)
                     }
-                    if(certificates.get(n).key != null){
-                        keystore.setKeyEntry(certificates.get(n).getAlias(),certificates.get(n).getKey(),password.toCharArray(),certificates.get(n).getX509Certificate())
+                    if(certificates.get(n).getCertificate().key != null){
+                        keystore.setKeyEntry(certificates.get(n).getAlias(),certificates.get(n).getCertificate().getKey(),password.toCharArray(),certificates.get(n).getCertificate().getX509Certificate())
                     }else{
-                        keystore.setCertificateEntry(certificates.get(n).getAlias(),certificates.get(n).getX509Certificate())
+                        keystore.setCertificateEntry(certificates.get(n).getAlias(),certificates.get(n).getCertificate().getX509Certificate())
                     }
 
                 }
@@ -268,7 +275,7 @@ class CertificateLoader {
         }
     }
 
-    //UPDATED (NOTE: DOES NOT APPLY ALIAS)
+    //Unchanged
     static List<Certificate> loadCertificatesFromCacerts(String uri, String password) throws KeyStoreException,
             IOException, CertificateException, NoSuchAlgorithmException, InvalidAlgorithmParameterException {
        //List<X509Certificate> certificates = new ArrayList<>()
@@ -294,6 +301,7 @@ class CertificateLoader {
     }
 
     //TODO PEM
+    //Unchanged
     static List<X509Certificate> getPublicCertFromPEM(String path) throws IOException, CertificateException {
         CertificateFactory fact = CertificateFactory.getInstance("X.509")
         // TODO problem ako se u fileu nađe private key ...
@@ -303,7 +311,7 @@ class CertificateLoader {
             return new ArrayList<>(certs)
         }
     }
-
+    //Unchanged
     void removeCertFromKeystore(String uri, String password, String certalias) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException{
         String[] types = new String[]{"JKS", "JCEKS", "PKCS12", "IBMCMSKS",/*BC types*/ "BKS", "PKCS12", "UBER"}
         boolean read = false
@@ -338,7 +346,7 @@ class CertificateLoader {
         }
 
     }
-
+    //Unchanged
     String encodeX509(X509Certificate x509Certificate){
         try{
             ByteArrayOutputStream binaryOutput = new ByteArrayOutputStream()
@@ -351,7 +359,7 @@ class CertificateLoader {
             LOG.error("Could not encode X509Certificate to base64 with error: " + exception)
         }
     }
-
+    //Unchanged
     X509Certificate decodeX509(String input){
         try{
             byte [] data = Base64.getUrlDecoder().decode(input)
@@ -363,7 +371,7 @@ class CertificateLoader {
             LOG.error("Could not decode  base64 to X509Certificate with error: " + exception)
         }
     }
-
+    //Unchanged
     String encodeKey(PrivateKey key){
         try{
             ByteArrayOutputStream binaryOutput = new ByteArrayOutputStream()
@@ -376,7 +384,7 @@ class CertificateLoader {
             LOG.error("Could not encode Key to base64 with error: " + exception)
         }
     }
-
+    //Unchanged
     PrivateKey decodeKey(String input){
         try{
             byte [] data = Base64.getUrlDecoder().decode(input)
@@ -388,7 +396,7 @@ class CertificateLoader {
             LOG.error("Could not decode base64 to key with error: " + exception)
         }
     }
-
+    //Unchanged
     String generateRandomAlphanumeric(){
         int leftLimit = 48; // numeral '0'
         int rightLimit = 122; // letter 'z'

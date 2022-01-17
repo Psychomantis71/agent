@@ -1,12 +1,13 @@
 package eu.outerheaven.certmanager.agent.service
 
 import eu.outerheaven.certmanager.agent.dto.CertificateDto
+import eu.outerheaven.certmanager.agent.dto.KeystoreCertificateDto
 import eu.outerheaven.certmanager.agent.dto.KeystoreDto
 import eu.outerheaven.certmanager.agent.entity.Certificate
-import eu.outerheaven.certmanager.agent.entity.Instance
 import eu.outerheaven.certmanager.agent.entity.Keystore
-import eu.outerheaven.certmanager.agent.form.InstanceForm
+import eu.outerheaven.certmanager.agent.entity.KeystoreCertificate
 import eu.outerheaven.certmanager.agent.form.KeystoreForm
+import eu.outerheaven.certmanager.agent.repository.CertificateRepository
 import eu.outerheaven.certmanager.agent.repository.KeystoreRepository
 import eu.outerheaven.certmanager.agent.util.CertificateLoader
 import eu.outerheaven.certmanager.agent.util.PreparedRequest
@@ -18,11 +19,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 
-import java.security.KeyStore
-import java.security.cert.CertificateExpiredException
-import java.security.cert.CertificateNotYetValidException
-
-
 @Service
 class KeystoreService {
 
@@ -32,16 +28,18 @@ class KeystoreService {
     private final KeystoreRepository repository
 
     @Autowired
+    private final CertificateRepository certificateRepository
+
+    @Autowired
     private final CertificateLoader certificateLoader
 
-
+    //Refactored
     KeystoreDto create(KeystoreForm form){
 
         Keystore keystore = new Keystore(
                 location: form.location,
                 description: form.description,
                 password: form.password,
-                managed: form.managed,
         )
         LOG.info("Adding keystore")
         Long id = repository.save(keystore).getId()
@@ -52,58 +50,33 @@ class KeystoreService {
                 location: keystore.location,
                 description: keystore.description,
                 password: keystore.password,
-                certificates: toDto(keystore.getCertificates())
+                keystoreCertificateDtos: toDto(keystore.getKeystoreCertificates())
         )
         return keystoreDto
     }
-
-     Keystore get(Long keystoreId){
+    //Unchanged
+    Keystore get(Long keystoreId){
          Keystore keystore = repository.findById(keystoreId).get()
          LOG.info("Repository ID {} path {}",keystore.getId(), keystore.getLocation())
         return keystore
     }
-
-     Keystore removeById(Long id){
+    //Unchanged
+    Keystore removeById(Long id){
         repository.deleteById(id)
     }
-
+    //Refactored
     void update(Long id, Boolean firstUpdate){
         Keystore keystore = repository.findById(id).get()
-        //TODO Optional comparison with previous state of keystore
-        //TODO move validity check to function where certificates are loaded to avoid unnecessary for loop
-        //List<Certificate> saved_certificates = keystore.getCertificates()
-        List<Certificate> current_certificates = certificateLoader.loadCertificatesFromKeystore(keystore.getLocation(),keystore.getPassword(), keystore)
-        /*
-        for(int i = 0; i < current_certificates.size(); i++){
-            try{
-                current_certificates.get(i).getX509Certificate().checkValidity()
-            }catch(CertificateExpiredException exception){
-                //TODO foward to manager for mailing
-                LOG.info("Certificate with alias {} is expired!", current_certificates.get(i).getAlias())
-                LOG.debug("Exception: ", exception)
-            }catch(CertificateNotYetValidException exception){
-                LOG.info("Certificate with alias {} is not yet valid!", current_certificates.get(i).getAlias())
-                LOG.debug("Exception: ", exception)
-            }
-
-            //TODO check validity compared to some set time in config, also foward if needed
-        }*/
-
-
-
-
-
-
-
-
-        keystore.setCertificates(current_certificates)
+        List<KeystoreCertificate> current_certificates = certificateLoader.loadCertificatesFromKeystore(keystore.getLocation(),keystore.getPassword(), keystore)
+        current_certificates = purgeDuplicateX509(current_certificates)
+        keystore.setKeystoreCertificates(current_certificates)
         repository.save(keystore)
-        LOG.info("Keystore size after update is: " + keystore.getCertificates().size())
+        LOG.info("Keystore size after update is: " + keystore.getKeystoreCertificates().size())
         if(!firstUpdate){
             sendUpdateToController(keystore.getId())
         }
     }
-
+    //Refactored
     void sendUpdateToController(Long id){
         LOG.info("1")
         String uri = "api/keystore/update";
@@ -114,7 +87,7 @@ class KeystoreService {
                 location: keystore.location,
                 description: keystore.description,
                 password: keystore.password,
-                certificates: toDto(keystore.getCertificates())
+                keystoreCertificateDtos: toDto(keystore.getKeystoreCertificates())
         )
         LOG.info("3")
         PreparedRequest preparedRequest = new PreparedRequest()
@@ -133,22 +106,41 @@ class KeystoreService {
 
     }
 
-    CertificateDto toDto(Certificate certificate){
+    KeystoreCertificateDto toDto(KeystoreCertificate keystoreCertificate){
         CertificateDto certificateDto = new CertificateDto(
-                id: certificate.id,
-                alias: certificate.alias,
-                key: certificateLoader.encodeKey(certificate.getKey()),
-                encodedX509: certificateLoader.encodeX509(certificate.getX509Certificate()),
-                managed: certificate.managed,
-                keystoreId: certificate.keystoreId
+                encodedX509Certificate: certificateLoader.encodeX509(keystoreCertificate.certificate.x509Certificate),
+                encodedPrivateKey: certificateLoader.encodeKey(keystoreCertificate.certificate.key)
         )
-        return certificateDto
+        KeystoreCertificateDto keystoreCertificateDto = new KeystoreCertificateDto(
+                id: keystoreCertificate.id,
+                alias: keystoreCertificate.alias,
+                certificateDto: certificateDto,
+                keystoreId: keystoreCertificate.keystoreId
+        )
+        return keystoreCertificateDto
     }
 
-    List<CertificateDto> toDto(List<Certificate> certificates){
-        List<CertificateDto> certificateDtos = new ArrayList<>()
-        certificates.forEach(r->certificateDtos.add(toDto(r)))
-        return certificateDtos
+    List<KeystoreCertificateDto> toDto(List<KeystoreCertificate> keystoreCertificates){
+        List<KeystoreCertificateDto> keystoreCertificateDtos = new ArrayList<>()
+        keystoreCertificates.forEach(r->keystoreCertificateDtos.add(toDto(r)))
+        return keystoreCertificateDtos
     }
 
+    List<KeystoreCertificate> purgeDuplicateX509(List<KeystoreCertificate> keystoreCertificates){
+        List<KeystoreCertificate> purgedResults = new ArrayList<>()
+        keystoreCertificates.forEach(r->{
+            Certificate certificate = certificateRepository.findByX509Certificate(r.certificate.x509Certificate)
+            if(certificate != null){
+                r.setCertificate(certificate)
+                purgedResults.add(r)
+            }else{
+                Certificate certToSave = r.certificate
+                Long certificateId = certificateRepository.save(certToSave).getId()
+                certToSave.setId(certificateId)
+                r.setCertificate(certToSave)
+            }
+
+        })
+        return keystoreCertificates
+    }
 }

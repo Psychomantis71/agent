@@ -6,5 +6,5 @@ class KeystoreDto {
     String location
     String description
     String password
-    List<CertificateDto> certificates
+    List<KeystoreCertificateDto> keystoreCertificateDtos
 }

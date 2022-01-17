@@ -24,9 +24,7 @@ class Keystore {
     private String password
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "keystoreId")
-    private List<Certificate> certificates
-
-    private Boolean managed
+    private List<KeystoreCertificate> keystoreCertificates
 
     Long getId() {
         return id
@@ -60,19 +58,11 @@ class Keystore {
         this.password = password
     }
 
-    List<Certificate> getCertificates() {
-        return certificates
+    List<KeystoreCertificate> getKeystoreCertificates() {
+        return keystoreCertificates
     }
 
-    void setCertificates(List<Certificate> certificates) {
-        this.certificates = certificates
-    }
-
-    Boolean getManaged() {
-        return managed
-    }
-
-    void setManaged(Boolean managed) {
-        this.managed = managed
+    void setKeystoreCertificates(List<KeystoreCertificate> keystoreCertificates) {
+        this.keystoreCertificates = keystoreCertificates
     }
 }
