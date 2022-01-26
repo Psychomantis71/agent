@@ -176,6 +176,7 @@ class CertificateLoader {
                     if(keystore.getKey(alias,password.toCharArray()) != null){
                         //NOTE this was modified to cast as private key
                         x509certificate.setKey(keystore.getKey(alias,password.toCharArray()) as PrivateKey)
+                        certificate.setKeypair(true)
                         //certificate.setKey(keystore.getKey(alias,password.toCharArray()))
                         LOG.info("Certificate with alias {} has a private key attached to it!",alias)
                     }
@@ -249,7 +250,7 @@ class CertificateLoader {
                     if(keystore.containsAlias(certificates.get(n).getAlias())){
                         LOG.warn("Added certificate with alias {} in keystore {} already exist, it will be overwritten", certificates.get(n).getAlias(),uri)
                     }
-                    if(certificates.get(n).getCertificate().key != null){
+                    if(certificates.get(n).keypair && certificates.get(n).getCertificate().key != null){
                         keystore.setKeyEntry(certificates.get(n).getAlias(),certificates.get(n).getCertificate().getKey(),password.toCharArray(),certificates.get(n).getCertificate().getX509Certificate())
                     }else{
                         keystore.setCertificateEntry(certificates.get(n).getAlias(),certificates.get(n).getCertificate().getX509Certificate())

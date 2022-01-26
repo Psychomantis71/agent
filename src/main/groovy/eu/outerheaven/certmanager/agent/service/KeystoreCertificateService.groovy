@@ -50,6 +50,9 @@ class KeystoreCertificateService {
                     certificate: certificate
 
             )
+            if(r.keypair){
+                keystoreCertificate.setKeypair(true)
+            }
             keystoreCertificates.add(keystoreCertificate)
         })
 

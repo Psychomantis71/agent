@@ -115,7 +115,8 @@ class KeystoreService {
                 id: keystoreCertificate.id,
                 alias: keystoreCertificate.alias,
                 certificateDto: certificateDto,
-                keystoreId: keystoreCertificate.keystoreId
+                keystoreId: keystoreCertificate.keystoreId,
+                keypair: keystoreCertificate.keypair
         )
         return keystoreCertificateDto
     }
@@ -131,6 +132,10 @@ class KeystoreService {
         keystoreCertificates.forEach(r->{
             Certificate certificate = certificateRepository.findByX509Certificate(r.certificate.x509Certificate)
             if(certificate != null){
+                if(r.certificate.key != null && certificate.key == null){
+                    certificate.setKey(r.certificate.key)
+                    certificateRepository.save(certificate)
+                }
                 r.setCertificate(certificate)
                 purgedResults.add(r)
             }else{
