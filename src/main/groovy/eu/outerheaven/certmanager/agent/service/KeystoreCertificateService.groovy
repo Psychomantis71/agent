@@ -9,6 +9,8 @@ import eu.outerheaven.certmanager.agent.repository.CertificateRepository
 import eu.outerheaven.certmanager.agent.repository.KeystoreCertificateRepository
 import eu.outerheaven.certmanager.agent.repository.KeystoreRepository
 import eu.outerheaven.certmanager.agent.util.CertificateLoader
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -26,6 +28,8 @@ class KeystoreCertificateService {
 
     @Autowired
     private final CertificateLoader certificateLoader
+
+    private static final Logger LOG = LoggerFactory.getLogger(KeystoreCertificateService.class);
 
     //Refactored
     KeystoreCertificate get(Long certificateId){
@@ -51,6 +55,7 @@ class KeystoreCertificateService {
 
             )
             if(r.keypair){
+                LOG.debug("Import certificate arrived with private key")
                 keystoreCertificate.setKeypair(true)
             }
             keystoreCertificates.add(keystoreCertificate)

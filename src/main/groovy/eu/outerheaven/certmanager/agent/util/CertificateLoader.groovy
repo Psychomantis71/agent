@@ -251,8 +251,10 @@ class CertificateLoader {
                         LOG.warn("Added certificate with alias {} in keystore {} already exist, it will be overwritten", certificates.get(n).getAlias(),uri)
                     }
                     if(certificates.get(n).keypair && certificates.get(n).getCertificate().key != null){
+                        LOG.info("Adding keypair")
                         keystore.setKeyEntry(certificates.get(n).getAlias(),certificates.get(n).getCertificate().getKey(),password.toCharArray(),certificates.get(n).getCertificate().getX509Certificate())
                     }else{
+                        LOG.info("Adding certificate")
                         keystore.setCertificateEntry(certificates.get(n).getAlias(),certificates.get(n).getCertificate().getX509Certificate())
                     }
 
@@ -266,7 +268,7 @@ class CertificateLoader {
                 read=true
                 break
             } catch (Exception e) {
-                LOG.error("[ADD]Reading keystore with type " + types[i] + " : " + e.toString())
+                LOG.error("Adding to keystore with type " + types[i] + " : " + e.toString() + " failed")
             }
         }
         //needed?
