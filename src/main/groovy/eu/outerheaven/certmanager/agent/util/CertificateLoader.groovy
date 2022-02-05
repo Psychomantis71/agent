@@ -194,12 +194,12 @@ class CertificateLoader {
                             addedCertificates.add(certificate)
                         }else {
                             if (tmpCertificate.getCertificate().x509Certificate == certificate.getCertificate().x509Certificate && tmpCertificate.getCertificate().key == certificate.getCertificate().key) {
-                                LOG.info("Found unmodified certificate")
+                                LOG.info("Found unmodified certificate, ID {}",tmpCertificate.id)
                                 unchangedCertificates.add(tmpCertificate)
                                 currentcertificates.remove(tmpCertificate)
                             }else{
-                                LOG.info("Found modified certificate")
-                                certificate.setId(tmpCertificate.getId())
+                                LOG.info("Found modified certificate, ID {}",tmpCertificate.id)
+                                certificate.setId(tmpCertificate.id)
                                 modifiedCertificates.add(certificate)
                                 currentcertificates.remove(tmpCertificate)
                             }

@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/api/certificate")
-class CertificateController {
+@RequestMapping("/api/keystore-certificate")
+class KeystoreCertificateController {
     //TODO Rename this to keystorecertificatecontroller
     @Autowired
     private final KeystoreCertificateService service
