@@ -34,7 +34,7 @@ class StartupTasks {
                 // set the properties value
                 prop.setProperty("controller.user", "agent_user");
                 prop.setProperty("controller.password", "kuracnabiciklu");
-                prop.setProperty("controller.ip", "192.168.1.17");
+                prop.setProperty("controller.ip", "localhost");
                 prop.setProperty("controller.port", "8091");
 
                 // save properties to project root folder

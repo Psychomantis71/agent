@@ -132,6 +132,7 @@ class KeystoreService {
         keystoreCertificates.forEach(r->{
             Certificate certificate = certificateRepository.findByX509Certificate(r.certificate.x509Certificate)
             if(certificate != null){
+                LOG.info("Duplicate entry found for certificate with DN: {}, not before {}, not after {}",r.certificate.x509Certificate.getSubjectDN(),r.certificate.x509Certificate.notBefore,r.certificate.x509Certificate.notAfter)
                 if(r.certificate.key != null && certificate.key == null){
                     certificate.setKey(r.certificate.key)
                     certificateRepository.save(certificate)
@@ -139,6 +140,7 @@ class KeystoreService {
                 r.setCertificate(certificate)
                 purgedResults.add(r)
             }else{
+                LOG.info("New entry found for certificate with DN: {}, not before {}, not after {}",r.certificate.x509Certificate.getSubjectDN(),r.certificate.x509Certificate.notBefore,r.certificate.x509Certificate.notAfter)
                 Certificate certToSave = r.certificate
                 Long certificateId = certificateRepository.save(certToSave).getId()
                 certToSave.setId(certificateId)
