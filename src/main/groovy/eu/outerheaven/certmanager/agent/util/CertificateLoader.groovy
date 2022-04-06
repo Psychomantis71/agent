@@ -110,7 +110,9 @@ class CertificateLoader {
                 throw new RuntimeException("Port could not be found from URI")
             }
             List<Certificate> certificates = new ArrayList<>()
-            SSLSocketFactory factory = SSLContext.getInstance("TLS") as SSLSocketFactory
+            SSLContext context = SSLContext.getInstance("TLS");
+            context.init(null, null, null);
+            SSLSocketFactory factory = context.getSocketFactory()
             socket = (SSLSocket) factory.createSocket(host, port)
             socket.startHandshake()
             SSLSession session = socket.getSession()
