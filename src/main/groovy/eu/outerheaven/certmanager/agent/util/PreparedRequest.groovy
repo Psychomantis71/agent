@@ -16,7 +16,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
 
-import javax.xml.ws.spi.http.HttpExchange
+//import javax.xml.ws.spi.http.HttpExchange
 
 class PreparedRequest {
 
