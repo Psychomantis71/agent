@@ -98,6 +98,7 @@ class InstanceService {
         try{
             response = restTemplate.postForEntity(preparedRequest.controller_url() + uri, request, String.class)
             LOG.info(response.getBody().toString())
+            //LOG.info("Adoption pending from administrator")
         } catch(Exception e){
             LOG.error("Adoption request rejected with error message: " + e )
         }
@@ -113,14 +114,28 @@ class InstanceService {
         instance.setAdopted(instanceForm.getAdopted())
         instance.setControllerId(instanceForm.getId())
         repository.save(instance)
+        saveNewCredentials(instanceForm.getNewUsername(), instanceForm.getNewPassword())
+        CertificateLoader certificateLoader = new CertificateLoader()
+        String newPassword = certificateLoader.generateRandomAlphanumeric()
 
+        User user = userRepository.findByUserName("admin")
+        user.setPassword(passwordEncoder.encode(newPassword))
+        userRepository.save(user)
+        PreparedRequest preparedRequest = new PreparedRequest()
+        preparedRequest.getLoginToken()
+        return newPassword
+    }
+
+    void saveNewCredentials(String username, String password){
         try {
             InputStream input = new FileInputStream("controller.properties")
             Properties prop = new Properties();
             prop.load(input);
             // set the properties value
-            prop.setProperty("controller.user", instanceForm.getNewUsername());
-            prop.setProperty("controller.password", instanceForm.getNewPassword());
+            prop.setProperty("controller.user", username);
+            if(password != null){
+                prop.setProperty("controller.password", password);
+            }
             OutputStream output = new FileOutputStream("controller.properties")
             // save properties to project root folder
             prop.store(output, null);
@@ -131,16 +146,6 @@ class InstanceService {
         } catch (IOException io) {
             io.printStackTrace();
         }
-
-        CertificateLoader certificateLoader = new CertificateLoader()
-        String newPassword = certificateLoader.generateRandomAlphanumeric()
-
-        User user = userRepository.findByUserName("admin")
-        user.setPassword(passwordEncoder.encode(newPassword))
-        userRepository.save(user)
-        PreparedRequest preparedRequest = new PreparedRequest()
-        preparedRequest.getLoginToken()
-        return newPassword
     }
 
 }
